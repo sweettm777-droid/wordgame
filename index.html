@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>영어단어 맞추기</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--ink:#1b2a4a;--mute:#66728c;--line:#d8e0ee;--gold:#f2b01e;--ok:#23915f;--bad:#d9383e;--tile:#eef2fa;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10172a;--card:#19223a;--ink:#eaf0ff;--mute:#93a0bd;--line:#2b3757;--gold:#f6c243;--ok:#4cc58a;--bad:#ff6b70;--tile:#222d4a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10172a;--card:#19223a;--ink:#eaf0ff;--mute:#93a0bd;--line:#2b3757;--gold:#f6c243;--ok:#4cc58a;--bad:#ff6b70;--tile:#222d4a;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Gowun Dodum',system-ui,sans-serif;min-height:100vh;display:flex;justify-content:center;padding:20px 16px}
+main{width:100%;max-width:480px}
+h1{font-family:'Fredoka',sans-serif;font-size:1.5rem;margin:0 0 16px;font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 20px}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:8px}
+.bar i{display:block;height:100%;background:var(--gold);transition:width .3s}
+.meta{display:flex;justify-content:space-between;color:var(--mute);font-size:.9rem;margin-bottom:22px}
+.word{font-family:'Fredoka',sans-serif;font-size:2.4rem;font-weight:600;margin:0 0 4px;word-break:break-all}
+.pos{color:var(--mute);margin:0 0 22px}
+.opts{display:grid;gap:10px;margin-bottom:14px}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;background:var(--tile);border:2px solid transparent;border-radius:14px;padding:14px 16px;font-size:1.1rem}
+.opt b{font-family:'Fredoka',sans-serif;width:26px;height:26px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:.9rem;flex:none}
+.opt:hover:not(:disabled){border-color:var(--gold)}
+.opt.ok{background:var(--ok);color:#fff}
+.opt.no{background:var(--bad);color:#fff}
+.opt:disabled{cursor:default}
+.msg{min-height:1.4em;margin:0 0 14px;color:var(--mute)}
+.row{display:flex;gap:8px}
+button{font:inherit;border:0;cursor:pointer;color:var(--ink)}
+button.main{background:var(--ink);color:var(--bg);flex:1;font-weight:700;border-radius:12px;padding:12px 16px}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.big{font-family:'Fredoka',sans-serif;font-size:3.2rem;margin:8px 0}
+.center{text-align:center}
+</style>
+</head>
+<body>
+<main>
+  <h1>영어단어 맞추기</h1>
+  <div class="card" id="app"></div>
+</main>
+<script>
+const W=[["apple","사과","명사"],["banana","바나나","명사"],["library","도서관","명사"],["window","창문","명사"],["mountain","산","명사"],["umbrella","우산","명사"],["kitchen","부엌","명사"],["journey","여행","명사"],["friend","친구","명사"],["weather","날씨","명사"],["bridge","다리","명사"],["garden","정원","명사"],["doctor","의사","명사"],["planet","행성","명사"],["bicycle","자전거","명사"],["breakfast","아침 식사","명사"],["island","섬","명사"],["shadow","그림자","명사"],["ticket","표, 티켓","명사"],["village","마을","명사"],["tomorrow","내일","명사"],["whisper","속삭이다","동사"],["borrow","빌리다","동사"],["create","만들다","동사"],["decide","결정하다","동사"],["enjoy","즐기다","동사"],["choose","선택하다","동사"],["remember","기억하다","동사"],["gentle","부드러운","형용사"],["honest","정직한","형용사"],["brave","용감한","형용사"],["quiet","조용한","형용사"],["delicious","맛있는","형용사"],["dangerous","위험한","형용사"]];
+const N=10, app=document.getElementById('app');
+let qs,i,correct,locked,wrong;
+const shuffle=a=>{a=a.slice();for(let k=a.length-1;k>0;k--){const j=Math.random()*(k+1)|0;[a[k],a[j]]=[a[j],a[k]]}return a};
+function start(){qs=shuffle(W).slice(0,N);i=0;correct=0;wrong=[];next()}
+function next(){locked=false;i>=N?done():render()}
+function render(){
+  const [w,ko,pos]=qs[i];
+  const same=shuffle(W.filter(x=>x[0]!==w&&x[2]===pos&&x[1]!==ko));
+  const rest=shuffle(W.filter(x=>x[0]!==w&&x[1]!==ko&&!same.includes(x)));
+  const opts=shuffle([ko,...same.concat(rest).slice(0,3).map(x=>x[1])]);
+  app.innerHTML=`<div class="bar"><i style="width:${i/N*100}%"></i></div>
+  <div class="meta"><span>${i+1} / ${N}</span><span>정답 ${correct}</span></div>
+  <p class="word">${w}</p><p class="pos">${pos} · 알맞은 뜻을 고르세요</p>
+  <div class="opts">${opts.map((o,n)=>`<button class="opt" data-v="${o}"><b>${n+1}</b>${o}</button>`).join('')}</div>
+  <p class="msg" id="msg"></p>`;
+  app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>pick(b));
+}
+function pick(b){
+  if(locked)return;locked=true;
+  const [w,ko]=qs[i],ok=b.dataset.v===ko;
+  app.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(x.dataset.v===ko)x.classList.add('ok')});
+  if(ok){correct++;document.getElementById('msg').textContent='정답이에요!'}
+  else{b.classList.add('no');wrong.push([w,ko]);document.getElementById('msg').textContent=`아쉬워요. 정답은 "${ko}" 이에요.`}
+  setTimeout(()=>{i++;next()},ok?900:1600);
+}
+function done(){
+  const m=correct===N?'완벽해요!':correct>=7?'잘했어요!':'조금만 더 연습해 봐요.';
+  const rv=wrong.length?`<p class="pos" style="margin-top:16px">틀린 단어: ${wrong.map(x=>x[0]+' ('+x[1]+')').join(', ')}</p>`:'';
+  app.innerHTML=`<div class="center"><p class="pos">결과</p><div class="big">${correct} / ${N}</div><p>${m}</p>${rv}<div class="row"><button class="main" id="again">다시 하기</button></div></div>`;
+  document.getElementById('again').onclick=start;
+}
+start();
+</script>
+</body>
+</html>
